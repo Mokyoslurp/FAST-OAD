@@ -1,6 +1,6 @@
 <!--
-  ~ This file is part of FAST-OAD : A framework for rapid Overall Aircraft Design
-  ~ Copyright (C) 2021 ONERA & ISAE-SUPAERO
+  ~ This file is part of FAST : A framework for rapid Overall Aircraft Design
+  ~ Copyright (C) 2020  ONERA & ISAE-SUPAERO
   ~ FAST is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License as published by
   ~ the Free Software Foundation, either version 3 of the License, or
@@ -332,20 +332,20 @@
         </propulsion>
         <load_case>
             <lc1>
-                <U_gust units="m/s" is_input="True">
+                <U_gust units="m/s">
                     15.25<!--gust vertical speed for sizing load case 1 (gust with minimum aircraft mass)--></U_gust>
-                <Vc_EAS units="m/s" is_input="True">
+                <Vc_EAS units="kn">
                     375.0<!--equivalent air speed for sizing load case 1 (gust with minimum aircraft mass)--></Vc_EAS>
-                <altitude units="ft" is_input="True">
-                    65616.79790026246<!--altitude for sizing load case 1 (gust with minimum aircraft mass)--></altitude>
+                <altitude units="ft">
+                    20000.<!--altitude for sizing load case 1 (gust with minimum aircraft mass)--></altitude>
             </lc1>
             <lc2>
-                <U_gust units="m/s" is_input="True">
+                <U_gust units="m/s">
                     15.25<!--gust vertical speed for sizing load case 2 (gust with maximum aircraft mass)--></U_gust>
-                <Vc_EAS units="kn" is_input="True">
-                    728.9416846652267<!--equivalent air speed for sizing load case 2 (gust with maximum aircraft mass)--></Vc_EAS>
-                <altitude units="ft" is_input="True">
-                    65616.79790026246<!--altitude for sizing load case 2 (gust with maximum aircraft mass)--></altitude>
+                <Vc_EAS units="kn">
+                    375.0<!--equivalent air speed for sizing load case 2 (gust with maximum aircraft mass)--></Vc_EAS>
+                <altitude units="ft">
+                    20000.<!--altitude for sizing load case 2 (gust with maximum aircraft mass)--></altitude>
             </lc2>
         </load_case>
         <mission>
