@@ -122,7 +122,7 @@ class Loads(ExplicitComponent):
         mu_g = 2 * mass / rho / wing_area / chord_geom / cl_alpha
         k_g = 0.88 * mu_g / (5.3 + mu_g)  # attenuation factor
         n_gust = 1 + (sea_level_density / 2 / 9.81) * k_g * u_gust * (
-            vc_eas * cl_alpha / mass / wing_area
+            vc_eas * cl_alpha / (mass / wing_area)
         )
 
         return n_gust
