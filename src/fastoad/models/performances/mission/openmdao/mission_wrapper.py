@@ -74,7 +74,7 @@ class MissionWrapper(MissionBuilder):
             name: value for name, value in output_definition.items() if name not in input_definition
         }
         for name, (units, desc) in input_definition.items():
-            if name.endswith(":CD") or name.endswith(":CL"):
+            if name.endswith(":CD") or name.endswith(":CL") or name.endswith("wind_speed"):
                 component.add_input(name, np.nan, shape_by_conn=True, desc=desc)
             else:
                 component.add_input(name, np.nan, units=units, desc=desc)
