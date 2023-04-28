@@ -22,10 +22,11 @@ from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import InitVar, dataclass, field, fields
 from itertools import chain
-from typing import List, Tuple
+from typing import Iterable, List, Tuple, Union, get_args, get_origin
 
 import numpy as np
 
+from fastoad.model_base.datacls import BaseDataClass
 from .constants import NAME_TAG, SEGMENT_TYPE_TAG, TYPE_TAG
 from .input_definition import InputDefinition
 from ..schema import (
@@ -33,6 +34,7 @@ from ..schema import (
     CRUISE_PART_TAG,
     DESCENT_PARTS_TAG,
     MISSION_DEFINITION_TAG,
+    MISSION_TAG,
     PARTS_TAG,
     PHASE_DEFINITIONS_TAG,
     PHASE_TAG,
@@ -41,7 +43,27 @@ from ..schema import (
     ROUTE_TAG,
     SEGMENT_TAG,
 )
+from ...base import FlightSequence, UNITS
+from ...mission import Mission
+from ...routes import RangedRoute
 from ...segments.base import RegisterSegment
+
+RESERVED_NAMES = [
+    NAME_TAG,
+    TYPE_TAG,
+    SEGMENT_TYPE_TAG,
+    PARTS_TAG,
+    CLIMB_PARTS_TAG,
+    DESCENT_PARTS_TAG,
+    CRUISE_PART_TAG,
+]
+
+
+class _TO_BE_REMOVED:
+    pass
+
+
+TO_BE_REMOVED = _TO_BE_REMOVED()
 
 
 @dataclass
@@ -157,7 +179,7 @@ class AbstractStructureBuilder(ABC):
         input_definitions: List[InputDefinition],
         parent=None,
         part_identifier="",
-        segment_class=None,
+        matching_class=None,
     ):
         """
         Returns the `definition` structure where all inputs (string/numeric values, numeric lists,
@@ -173,6 +195,7 @@ class AbstractStructureBuilder(ABC):
 
         if isinstance(structure, dict):
             if "value" in structure:
+
                 input_definition = InputDefinition.from_dict(
                     parent, structure, part_identifier=part_identifier, prefix=self.variable_prefix
                 )
@@ -180,26 +203,16 @@ class AbstractStructureBuilder(ABC):
                 return input_definition
 
             part_identifier = structure.get(NAME_TAG, part_identifier)
-            if SEGMENT_TYPE_TAG in structure:
-                segment_class = RegisterSegment.get_class(structure[SEGMENT_TYPE_TAG])
-            else:
-                segment_class = None
+            matching_class = self._get_matching_class(structure)
+
             for key, value in structure.items():
-                if key in [
-                    NAME_TAG,
-                    TYPE_TAG,
-                    SEGMENT_TYPE_TAG,
-                    PARTS_TAG,
-                    CLIMB_PARTS_TAG,
-                    DESCENT_PARTS_TAG,
-                    CRUISE_PART_TAG,
-                ]:
+                if key in RESERVED_NAMES:
                     continue
                 if (
-                    segment_class
+                    matching_class
                     and isinstance(value, dict)
                     and isinstance(value.get("value"), str)
-                    and self._is_shape_by_conn(key, segment_class)
+                    and self._is_shape_by_conn(key, matching_class)
                 ):
                     value["shape_by_conn"] = True
 
@@ -208,7 +221,7 @@ class AbstractStructureBuilder(ABC):
                     input_definitions,
                     parent=key,
                     part_identifier=part_identifier,
-                    segment_class=segment_class,
+                    matching_class=matching_class,
                 )
             return structure
 
@@ -219,19 +232,10 @@ class AbstractStructureBuilder(ABC):
         input_definition = InputDefinition(
             key, value, part_identifier=part_identifier, prefix=self.variable_prefix
         )
-        if segment_class and isinstance(value, str):
-            input_definition.shape_by_conn = self._is_shape_by_conn(key, segment_class)
+        if matching_class and isinstance(value, str):
+            input_definition.shape_by_conn = self._is_shape_by_conn(key, matching_class)
         input_definitions.append(input_definition)
         return input_definition
-
-    @staticmethod
-    def _is_shape_by_conn(key, segment_class) -> bool:
-        """
-        Here variables that are expected to be arrays or lists in the provided segment class are
-        attributed the "shape_by_conn=True" property.
-        """
-        segment_fields = [fld for fld in fields(segment_class) if fld.name == key]
-        return len(segment_fields) == 1 and issubclass(segment_fields[0].type, (list, np.ndarray))
 
     def _process_polar(self, structure):
         """
@@ -250,6 +254,51 @@ class AbstractStructureBuilder(ABC):
                 structure[POLAR_TAG], "", self.qualified_name, self.variable_prefix
             )
             structure[POLAR_TAG] = self.process_builder(builder)
+
+    @staticmethod
+    def _get_output_unit(parameter_name: str, cls: BaseDataClass):
+        matching_fields = [f for f in fields(cls) if f.name == parameter_name]
+        if matching_fields:
+            return matching_fields[0].metadata.get(UNITS)
+        return None
+
+    @staticmethod
+    def _is_shape_by_conn(key, segment_class) -> bool:
+        """
+        Here variables that are expected to be arrays or lists in the provided segment class are
+        attributed the "shape_by_conn=True" property.
+        """
+
+        def _check_iterable(cls):
+            try:
+                return issubclass(cls, Iterable)
+            except TypeError:
+                return False
+
+        segment_fields = [fld for fld in fields(segment_class) if fld.name == key]
+        if len(segment_fields) == 1:
+            field_type = segment_fields[0].type
+            if get_origin(field_type) is Union:
+                return np.any([_check_iterable(arg) for arg in get_args(field_type)])
+            else:
+                return _check_iterable(field_type)
+
+        return len(segment_fields) == 1 and issubclass(segment_fields[0].type, (list, np.ndarray))
+
+    @staticmethod
+    def _get_matching_class(structure):
+        matching_class = None
+        if TYPE_TAG in structure:
+            if structure[TYPE_TAG] == MISSION_TAG:
+                matching_class = Mission
+            elif structure[TYPE_TAG] == ROUTE_TAG:
+                matching_class = RangedRoute
+            elif structure[TYPE_TAG] == PHASE_TAG:
+                matching_class = FlightSequence
+        if isinstance(structure, dict) and SEGMENT_TYPE_TAG in structure:
+            matching_class = RegisterSegment.get_class(structure[SEGMENT_TYPE_TAG])
+
+        return matching_class
 
 
 class DefaultStructureBuilder(AbstractStructureBuilder):

@@ -2,7 +2,7 @@
 Schema for mission definition files.
 """
 #  This file is part of FAST-OAD : A framework for rapid Overall Aircraft Design
-#  Copyright (C) 2022 ONERA & ISAE-SUPAERO
+#  Copyright (C) 2023 ONERA & ISAE-SUPAERO
 #  FAST is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
@@ -30,6 +30,7 @@ JSON_SCHEMA_NAME = "mission_schema.json"
 
 # Tags
 SEGMENT_TAG = "segment"
+MISSION_TAG = "mission"
 ROUTE_TAG = "route"
 PHASE_TAG = "phase"
 RESERVE_TAG = "reserve"
