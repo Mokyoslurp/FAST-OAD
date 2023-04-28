@@ -88,6 +88,7 @@ class AbstractStructureBuilder(ABC):
     name: str
     parent_name: str = None
     variable_prefix: str = ""
+    additional_parameters: dict = field(default_factory=dict)
 
     _structure: dict = field(default=None, init=False)
 
@@ -103,7 +104,12 @@ class AbstractStructureBuilder(ABC):
         cls.type = structure_type
 
     def __post_init__(self, definition):
+        if isinstance(definition, dict):
+            new_definition = deepcopy(self.additional_parameters)
+            new_definition.update(definition)
+            definition = new_definition
         self._structure = self._build(definition)
+        self._structure.update()
         if self.__class__.type:
             self._structure[TYPE_TAG] = self.__class__.type
         self._structure[NAME_TAG] = self.qualified_name
@@ -194,6 +200,13 @@ class AbstractStructureBuilder(ABC):
         """
 
         if isinstance(structure, dict):
+            matching_class = self._get_matching_class(structure)
+            if matching_class:
+                field_names = [f.name for f in fields(matching_class)]
+                for key in list(structure.keys()):
+                    if key not in RESERVED_NAMES + ["target"] + field_names:
+                        del structure[key]
+
             if "value" in structure:
 
                 input_definition = InputDefinition.from_dict(
@@ -300,6 +313,9 @@ class AbstractStructureBuilder(ABC):
 
         return matching_class
 
+    def _get_additional_parameters(self, structure: dict):
+        return {key: value for key, value in structure.items() if key not in RESERVED_NAMES}
+
 
 class DefaultStructureBuilder(AbstractStructureBuilder):
     """
@@ -371,11 +387,19 @@ class PhaseStructureBuilder(AbstractStructureBuilder, structure_type=PHASE_TAG):
         for i, part in enumerate(phase_definition[PARTS_TAG]):
             if PHASE_TAG in part:
                 builder = PhaseStructureBuilder(
-                    definition, part[PHASE_TAG], self.qualified_name, self.variable_prefix
+                    definition,
+                    part[PHASE_TAG],
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(definition[PHASE_DEFINITIONS_TAG][self.name]),
                 )
             elif SEGMENT_TAG in part:
                 builder = SegmentStructureBuilder(
-                    part, "", self.qualified_name, self.variable_prefix
+                    part,
+                    "",
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(definition[PHASE_DEFINITIONS_TAG][self.name]),
                 )
             else:
                 raise RuntimeError(f"Unexpected structure in definition of phase {self.name}")
@@ -401,7 +425,11 @@ class RouteStructureBuilder(AbstractStructureBuilder, structure_type=ROUTE_TAG):
         )
 
         builder = SegmentStructureBuilder(
-            route_definition[CRUISE_PART_TAG], "cruise", self.qualified_name, self.variable_prefix
+            route_definition[CRUISE_PART_TAG],
+            "cruise",
+            self.qualified_name,
+            self.variable_prefix,
+            self._get_additional_parameters(route_definition),
         )
         route_structure[CRUISE_PART_TAG] = self.process_builder(builder)
 
@@ -421,7 +449,13 @@ class RouteStructureBuilder(AbstractStructureBuilder, structure_type=ROUTE_TAG):
         for part_definition in parts_definition:
             phase_name = part_definition["phase"]
             builder = PhaseStructureBuilder(
-                global_definition, phase_name, self.qualified_name, self.variable_prefix
+                global_definition,
+                phase_name,
+                self.qualified_name,
+                self.variable_prefix,
+                self._get_additional_parameters(
+                    global_definition[ROUTE_DEFINITIONS_TAG][self.name]
+                ),
             )
             phase_structure = self.process_builder(builder)
             parts.append(phase_structure)
@@ -444,20 +478,36 @@ class MissionStructureBuilder(AbstractStructureBuilder, structure_type="mission"
             if ROUTE_TAG in part_definition:
                 route_name = part_definition[ROUTE_TAG]
                 builder = RouteStructureBuilder(
-                    definition, route_name, self.qualified_name, self.variable_prefix
+                    definition,
+                    route_name,
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(mission_structure),
                 )
             elif PHASE_TAG in part_definition:
                 phase_name = part_definition[PHASE_TAG]
                 builder = PhaseStructureBuilder(
-                    definition, phase_name, self.qualified_name, self.variable_prefix
+                    definition,
+                    phase_name,
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(mission_structure),
                 )
             elif SEGMENT_TAG in part_definition:
                 builder = SegmentStructureBuilder(
-                    part_definition, "", self.qualified_name, self.variable_prefix
+                    part_definition,
+                    "",
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(mission_structure),
                 )
             else:
                 builder = DefaultStructureBuilder(
-                    part_definition, "", self.qualified_name, self.variable_prefix
+                    part_definition,
+                    "",
+                    self.qualified_name,
+                    self.variable_prefix,
+                    self._get_additional_parameters(mission_structure),
                 )
 
             part_structure = self.process_builder(builder)
