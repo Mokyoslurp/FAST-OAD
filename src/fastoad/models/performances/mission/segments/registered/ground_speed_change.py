@@ -17,9 +17,9 @@ from dataclasses import dataclass
 from typing import List
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.exceptions import FastFlightSegmentIncompleteFlightPoint
-from fastoad.models.performances.mission.segments.base import RegisterSegment
-from fastoad.models.performances.mission.segments.time_step_base import AbstractGroundSegment
+from ..base import RegisterSegment
+from ..time_step_base import AbstractGroundSegment
+from ...exceptions import FastFlightSegmentIncompleteFlightPoint
 
 _LOGGER = logging.getLogger(__name__)  # Logger for this module
 

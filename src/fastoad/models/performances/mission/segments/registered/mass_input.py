@@ -17,7 +17,7 @@ from dataclasses import dataclass
 import pandas as pd
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.segments.base import AbstractFlightSegment, RegisterSegment
+from ..base import AbstractFlightSegment, RegisterSegment
 
 
 @RegisterSegment("mass_input")

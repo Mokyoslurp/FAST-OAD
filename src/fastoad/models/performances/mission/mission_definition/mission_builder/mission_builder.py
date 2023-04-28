@@ -220,7 +220,7 @@ class MissionBuilder:
             mission_name = self.mission_name
 
         routes = self.build(inputs, mission_name)
-        return [route.flight_distance for route in routes if isinstance(route, RangedRoute)]
+        return [route.range for route in routes if isinstance(route, RangedRoute)]
 
     def get_reserve(self, flight_points: pd.DataFrame, mission_name: str = None) -> float:
         """
@@ -386,7 +386,7 @@ class MissionBuilder:
                 climb_phases=climb_phases,
                 cruise_segment=cruise_phase,
                 descent_phases=descent_phases,
-                flight_distance=flight_range,
+                range=flight_range,
             )
         else:
             route = FlightSequence()

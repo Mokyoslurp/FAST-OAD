@@ -14,7 +14,7 @@ Classes for computation of routes (i.e. assemblies of climb, cruise and descent 
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -23,7 +23,7 @@ from scipy.optimize import root_scalar
 
 from fastoad.model_base import FlightPoint
 from fastoad.model_base.datacls import MANDATORY_FIELD
-from .base import FlightSequence, IFlightPart
+from .base import FlightSequence, IFlightPart, UNITS
 from .segments.base import AbstractFlightSegment
 from .segments.registered.cruise import CruiseSegment
 
@@ -50,12 +50,12 @@ class RangedRoute(FlightSequence):
     descent_phases: List[FlightSequence] = MANDATORY_FIELD
 
     #: Target ground distance for whole route
-    flight_distance: float = MANDATORY_FIELD
+    range: float = field(default=MANDATORY_FIELD, metadata={UNITS: "m"})
 
     #: Accuracy on actual total ground distance for the solver. In meters
-    distance_accuracy: float = 0.5e3
+    distance_accuracy: float = field(default=0.5e3, metadata={UNITS: "m"})
 
-    #: If True, cruise distance will be adjusted to match :attr:`flight_distance`
+    #: If True, cruise distance will be adjusted to match :attr:`range`
     solve_distance: bool = True
 
     def __post_init__(self):
@@ -98,7 +98,7 @@ class RangedRoute(FlightSequence):
     def compute_from(self, start: FlightPoint) -> pd.DataFrame:
         # In very simple cases, climb and descent phases can have fixed
         # covered ground distance. In that case, cruise distance is easy to
-        # obtain from flight_distance.
+        # obtain from self.range.
         # In other cases, cruise distance is obtained using a solver.
         climb_descent_distances = []
         for phase in self.climb_phases + self.descent_phases:
@@ -113,7 +113,7 @@ class RangedRoute(FlightSequence):
             return self._solve_cruise_distance(start)
 
         # climb and descent distances are provided, cruise distance can be obtained easily.
-        self.cruise_distance = self.flight_distance - np.sum(climb_descent_distances)
+        self.cruise_distance = self.range - np.sum(climb_descent_distances)
         return super().compute_from(start)
 
     def _get_flight_sequence(self) -> List[IFlightPart]:
@@ -146,8 +146,8 @@ class RangedRoute(FlightSequence):
         root_scalar(
             self._compute_flight,
             args=(start,),
-            x0=self.flight_distance * 0.5,
-            x1=self.flight_distance * 0.25,
+            x0=self.range * 0.5,
+            x1=self.range * 0.25,
             xtol=self.distance_accuracy,
             method="secant",
         )
@@ -160,7 +160,7 @@ class RangedRoute(FlightSequence):
 
         :param cruise_distance:
         :param start:
-        :return: difference between computed distance and self.flight_distance
+        :return: difference between computed distance and self.range.
         """
         self.cruise_distance = cruise_distance
         self._flight_points = super().compute_from(start)
@@ -168,4 +168,4 @@ class RangedRoute(FlightSequence):
             self._flight_points.iloc[-1].ground_distance
             - self._flight_points.iloc[0].ground_distance
         )
-        return self.flight_distance - obtained_distance
+        return self.range - obtained_distance

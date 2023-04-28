@@ -13,7 +13,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 import numpy as np
@@ -21,12 +21,11 @@ import pandas as pd
 from scipy.constants import foot, g
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.segments.base import (
-    RegisterSegment,
-)
-from fastoad.models.performances.mission.util import get_closest_flight_level
 from .altitude_change import AltitudeChangeSegment
+from ..base import RegisterSegment
 from ..time_step_base import AbstractRegulatedThrustSegment, AbstractTimeStepFlightSegment
+from ...base import UNITS
+from ...util import get_closest_flight_level
 
 
 @dataclass
@@ -212,8 +211,8 @@ class BreguetCruiseSegment(CruiseSegment):
     #: In this case, reference_area parameter will be unused
     use_max_lift_drag_ratio: bool = False
 
-    #: The reference area, in m**2. Used only if use_max_lift_drag_ratio is False.
-    reference_area: float = 1.0
+    #: The reference area. Used only if use_max_lift_drag_ratio is False.
+    reference_area: float = field(default=1.0, metadata={UNITS: "m**2"})
 
     def compute_from_start_to_target(self, start: FlightPoint, target: FlightPoint) -> pd.DataFrame:
         cruise_mass_ratio = self._compute_cruise_mass_ratio(

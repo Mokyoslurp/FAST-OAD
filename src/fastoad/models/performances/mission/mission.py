@@ -21,7 +21,7 @@ import pandas as pd
 from scipy.optimize import root_scalar
 
 from fastoad.model_base import FlightPoint
-from .base import FlightSequence
+from .base import FlightSequence, UNITS
 from .routes import RangedRoute
 from .segments.registered.cruise import CruiseSegment
 
@@ -35,13 +35,13 @@ class Mission(FlightSequence):
     """
 
     #: If not None, the mission will adjust the first
-    target_fuel_consumption: Optional[float] = None
+    target_fuel_consumption: Optional[float] = field(default=None, metadata={UNITS: "kg"})
 
-    reserve_ratio: Optional[float] = 0.0
+    reserve_ratio: float = 0.0
     reserve_base_route_name: Optional[str] = None
 
-    #: Accuracy on actual consumed fuel for the solver. In kg
-    fuel_accuracy: float = 10.0
+    #: Accuracy on actual consumed fuel for the solver
+    fuel_accuracy: float = field(default=10.0, metadata={UNITS: "kg"})
 
     _flight_points: Optional[pd.DataFrame] = field(init=False, default=None)
     _first_cruise_segment: Optional[CruiseSegment] = field(init=False, default=None)
@@ -135,7 +135,7 @@ class Mission(FlightSequence):
             self._flight_points = pd.DataFrame([start, start])
         else:
             self.first_route.solve_distance = False
-            input_cruise_distance = self.first_route.flight_distance
+            input_cruise_distance = self.first_route.range
 
             root_scalar(
                 self._compute_flight,

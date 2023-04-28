@@ -14,7 +14,7 @@
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -28,6 +28,7 @@ from fastoad.model_base import FlightPoint
 from fastoad.model_base.datacls import MANDATORY_FIELD
 from fastoad.model_base.propulsion import IPropulsion
 from .base import AbstractFlightSegment
+from ..base import UNITS
 from ..polar import Polar
 from ..polar_modifier import AbstractPolarModifier, UnchangedPolar
 
@@ -62,15 +63,16 @@ class AbstractTimeStepFlightSegment(
     # (the default value returns a polar without change)
     polar_modifier: AbstractPolarModifier = UnchangedPolar()
 
-    #: The reference area, in m**2.
-    reference_area: float = MANDATORY_FIELD
+    #: The reference area.
+    reference_area: float = field(default=MANDATORY_FIELD, metadata={UNITS: "m**2"})
 
     #: Used time step for computation (actual time step can be lower at some particular times of
     #: the flight path).
-    time_step: float = DEFAULT_TIME_STEP
+    time_step: float = field(default=DEFAULT_TIME_STEP, metadata={UNITS: "s"})
 
     #: Minimum and maximum authorized altitude values. If computed altitude gets beyond these
     #: limits, computation will be interrupted and a warning message will be issued in logger.
+    #: In meters.
     altitude_bounds: tuple = (-500.0, 40000.0)
 
     #: Minimum and maximum authorized mach values. If computed Mach gets beyond these limits,
@@ -339,7 +341,7 @@ class AbstractRegulatedThrustSegment(AbstractTimeStepFlightSegment, ABC):
     Base class for computing flight segment where thrust rate is adjusted on drag.
     """
 
-    time_step: float = 60.0
+    time_step: float = field(default=60.0, metadata={UNITS: "s"})
 
     def __post_init__(self):
         super().__post_init__()
@@ -360,7 +362,7 @@ class AbstractFixedDurationSegment(AbstractTimeStepFlightSegment, ABC):
     Base class for computing a fixed-duration segment.
     """
 
-    time_step: float = 60.0
+    time_step: float = field(default=60.0, metadata={UNITS: "s"})
 
     def get_distance_to_target(
         self, flight_points: List[FlightPoint], target: FlightPoint
@@ -376,7 +378,7 @@ class AbstractTakeOffSegment(AbstractManualThrustSegment, ABC):
     """
 
     # Default time step for this dynamic segment
-    time_step: float = 0.1
+    time_step: float = field(default=0.1, metadata={UNITS: "s"})
 
     def compute_from_start_to_target(self, start: FlightPoint, target: FlightPoint) -> pd.DataFrame:
         self.polar_modifier.ground_altitude = start.altitude

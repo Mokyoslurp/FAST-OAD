@@ -11,12 +11,13 @@
 #  GNU General Public License for more details.
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from abc import ABCMeta
 from dataclasses import dataclass, field, fields, make_dataclass
 
 from fastoad.model_base import FlightPoint
 from fastoad.model_base.datacls import MANDATORY_FIELD
-from fastoad.models.performances.mission.base import FlightSequence
+from ..base import FlightSequence
 
 
 @dataclass

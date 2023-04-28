@@ -17,7 +17,7 @@ import pytest
 
 from fastoad.model_base import FlightPoint
 from fastoad.model_base.propulsion import AbstractFuelPropulsion
-from fastoad.models.performances.mission.polar import Polar
+from ....polar import Polar
 
 
 @pytest.fixture

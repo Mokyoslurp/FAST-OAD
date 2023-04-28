@@ -13,10 +13,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from fastoad.model_base.flight_point import FlightPoint
-from .base import RegisterElement
+from .base import RegisterElement, UNITS
 from .polar import Polar
 
 
@@ -77,10 +77,10 @@ class GroundEffectRaymer(AbstractPolarModifier):
     """
 
     #: Wingspan
-    span: float
+    span: float = field(metadata={UNITS: "m"})
 
     #: Main landing gear height
-    landing_gear_height: float
+    landing_gear_height: float = field(metadata={UNITS: "m"})
 
     #: Induced drag coefficient, multiplies CL**2 to obtain the induced drag
     induced_drag_coefficient: float
@@ -92,7 +92,7 @@ class GroundEffectRaymer(AbstractPolarModifier):
     k_cd: float
 
     #: Altitude of ground w.r.t. sea level
-    ground_altitude: float = 0.0
+    ground_altitude: float = field(default=0.0, metadata={UNITS: "m"})
 
     def modify_polar(self, polar: Polar, flight_point: FlightPoint) -> Polar:
         """

@@ -21,12 +21,10 @@ from typing import Optional, Union
 
 from openmdao.core.system import System
 
-from fastoad.models.performances.mission.mission_definition.exceptions import (
-    FastMissionFileMissingMissionNameError,
-)
-from fastoad.models.performances.mission.mission_definition.schema import MissionDefinition
-from fastoad.models.performances.mission.openmdao import resources
-from fastoad.models.performances.mission.openmdao.mission_wrapper import MissionWrapper
+from . import resources
+from .mission_wrapper import MissionWrapper
+from ..mission_definition.exceptions import FastMissionFileMissingMissionNameError
+from ..mission_definition.schema import MissionDefinition
 
 
 # pylint: disable=too-few-public-methods

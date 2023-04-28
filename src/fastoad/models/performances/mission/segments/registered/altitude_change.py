@@ -14,19 +14,18 @@
 
 import logging
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Tuple
 
 import pandas as pd
 from scipy.constants import foot, g
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.exceptions import FastFlightSegmentIncompleteFlightPoint
-from fastoad.models.performances.mission.segments.base import (
-    RegisterSegment,
-)
-from fastoad.models.performances.mission.segments.time_step_base import AbstractManualThrustSegment
-from fastoad.models.performances.mission.util import get_closest_flight_level
+from ..base import RegisterSegment
+from ..time_step_base import AbstractManualThrustSegment
+from ...base import UNITS
+from ...exceptions import FastFlightSegmentIncompleteFlightPoint
+from ...util import get_closest_flight_level
 
 _LOGGER = logging.getLogger(__name__)  # Logger for this module
 
@@ -71,7 +70,7 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
 
     """
 
-    time_step: float = 2.0
+    time_step: float = field(default=2.0, metadata={UNITS: "s"})
 
     #: The maximum allowed flight level (i.e. multiple of 100 feet).
     maximum_flight_level: float = 500.0

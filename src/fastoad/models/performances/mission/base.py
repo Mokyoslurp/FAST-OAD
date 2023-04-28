@@ -23,6 +23,8 @@ from fastoad.model_base import FlightPoint
 from fastoad.model_base.datacls import BaseDataClass
 from .exceptions import FastUnknownMissionElementError
 
+UNITS = "units"
+
 
 @dataclass
 class IFlightPart(ABC, BaseDataClass):
@@ -55,7 +57,9 @@ class FlightSequence(IFlightPart):
     """
 
     #: Consumed mass between sequence start and target mass, if any defined
-    consumed_mass_before_input_weight: float = field(default=0.0, init=False)
+    consumed_mass_before_input_weight: float = field(
+        default=0.0, init=False, metadata={UNITS: "kg"}
+    )
 
     #: List of flight points for each part of the sequence, obtained after
     #  running :meth:`compute_from`

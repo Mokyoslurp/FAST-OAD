@@ -73,7 +73,7 @@ def test_ranged_route(low_speed_polar, high_speed_polar, propulsion, cleanup):
         climb_phases=[initial_climb, climb],
         cruise_segment=cruise,
         descent_phases=[descent],
-        flight_distance=total_distance,
+        range=total_distance,
     )
     assert flight_calculator.cruise_speed == ("mach", 0.78)
 

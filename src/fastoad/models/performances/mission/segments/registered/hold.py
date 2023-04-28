@@ -14,13 +14,8 @@
 
 from dataclasses import dataclass
 
-from fastoad.models.performances.mission.segments.base import (
-    RegisterSegment,
-)
-from fastoad.models.performances.mission.segments.time_step_base import (
-    AbstractFixedDurationSegment,
-    AbstractRegulatedThrustSegment,
-)
+from ..base import RegisterSegment
+from ..time_step_base import AbstractFixedDurationSegment, AbstractRegulatedThrustSegment
 
 
 @RegisterSegment("holding")

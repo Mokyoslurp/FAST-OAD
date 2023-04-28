@@ -12,20 +12,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple
 
 import pandas as pd
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.polar import Polar
-from fastoad.models.performances.mission.segments.base import (
-    RegisterSegment,
-)
-from fastoad.models.performances.mission.segments.time_step_base import (
-    AbstractFixedDurationSegment,
-    AbstractManualThrustSegment,
-)
+from ..base import RegisterSegment
+from ..time_step_base import AbstractFixedDurationSegment, AbstractManualThrustSegment
+from ...base import UNITS
+from ...polar import Polar
 
 
 @RegisterSegment("taxi")
@@ -39,9 +35,12 @@ class TaxiSegment(AbstractManualThrustSegment, AbstractFixedDurationSegment):
     """
 
     polar: Polar = None
-    reference_area: float = 1.0
-    time_step: float = 60.0
-    true_airspeed: float = 0.0
+    reference_area: float = field(default=1.0, metadata={UNITS: "m**2"})
+    time_step: float = field(default=60.0, metadata={UNITS: "s"})
+
+    #: The imposed speed during taxi. Used for distance computation, and may have an effect on
+    #: propulsion.
+    true_airspeed: float = field(default=0.0, metadata={UNITS: "m/s"})
 
     def get_gamma_and_acceleration(self, flight_point: FlightPoint) -> Tuple[float, float]:
         return 0.0, 0.0

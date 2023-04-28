@@ -13,7 +13,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 import numpy as np
@@ -21,8 +21,9 @@ from numpy import cos, sin
 from scipy.constants import g
 
 from fastoad.model_base import FlightPoint
-from fastoad.models.performances.mission.segments.base import RegisterSegment
-from fastoad.models.performances.mission.segments.time_step_base import AbstractGroundSegment
+from ...base import RegisterSegment
+from ...time_step_base import AbstractGroundSegment
+from ....base import UNITS
 
 _LOGGER = logging.getLogger(__name__)  # Logger for this module
 
@@ -38,13 +39,13 @@ class RotationSegment(AbstractGroundSegment):
     alpha_limit (tail-strike).
     """
 
-    #: Rotation rate in radians/s, i.e. derivative of angle of attack.
+    #: Rotation rate, i.e. derivative of angle of attack.
     #: Default value is CS-25 specification.
-    rotation_rate: float = np.radians(3)
+    rotation_rate: float = field(default=np.radians(3), metadata={UNITS: "rad/s"})
 
-    #: Angle of attack (in radians) where tail strike is expected. Default value
+    #: Angle of attack where tail strike is expected. Default value
     #: is good for SMR aircraft.
-    alpha_limit: float = np.radians(13.5)
+    alpha_limit: float = field(default=np.radians(13.5), metadata={UNITS: "rad"})
 
     def get_distance_to_target(
         self, flight_points: List[FlightPoint], target: FlightPoint

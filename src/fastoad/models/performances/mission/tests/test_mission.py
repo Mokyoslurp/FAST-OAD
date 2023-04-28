@@ -71,7 +71,7 @@ def test_mission(low_speed_polar, high_speed_polar, propulsion):
                 time_step=5.0,
             )
         ],
-        flight_distance=first_route_distance,
+        range=first_route_distance,
     )
 
     second_route = RangedRoute(
@@ -104,7 +104,7 @@ def test_mission(low_speed_polar, high_speed_polar, propulsion):
                 time_step=5.0,
             )
         ],
-        flight_distance=second_route_distance,
+        range=second_route_distance,
     )
 
     start = FlightPoint(

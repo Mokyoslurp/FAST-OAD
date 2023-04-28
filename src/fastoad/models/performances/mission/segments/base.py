@@ -135,7 +135,7 @@ class AbstractFlightSegment(IFlightPart, ABC):
     # the `target` field above will be overloaded by a property, using the hidden value below:
     _target: FlightPoint = field(default=MANDATORY_FIELD, init=False)
 
-    #: The temperature offset for ISA atmosphere model.
+    #: The temperature offset for ISA atmosphere model. In K
     isa_offset: float = 0.0
 
     #: Using this value will tell to keep the associated parameter constant.
