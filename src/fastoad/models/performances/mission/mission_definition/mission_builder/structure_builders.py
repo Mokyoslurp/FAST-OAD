@@ -104,10 +104,6 @@ class AbstractStructureBuilder(ABC):
         cls.type = structure_type
 
     def __post_init__(self, definition):
-        if isinstance(definition, dict):
-            new_definition = deepcopy(self.additional_parameters)
-            new_definition.update(definition)
-            definition = new_definition
         self._structure = self._build(definition)
         self._structure.update()
         if self.__class__.type:
@@ -115,6 +111,13 @@ class AbstractStructureBuilder(ABC):
         self._structure[NAME_TAG] = self.qualified_name
         self._process_polar(self._structure)
         self._parse_inputs(self._structure, self._input_definitions)
+
+    def _update_additional_parameters(self, definition):
+        if isinstance(definition, dict):
+            new_definition = deepcopy(self.additional_parameters)
+            new_definition.update(deepcopy(definition))
+            definition = new_definition
+        return definition
 
     @property
     def structure(self) -> dict:
@@ -208,11 +211,16 @@ class AbstractStructureBuilder(ABC):
                         del structure[key]
 
             if "value" in structure:
-
-                input_definition = InputDefinition.from_dict(
-                    parent, structure, part_identifier=part_identifier, prefix=self.variable_prefix
-                )
-                input_definitions.append(input_definition)
+                if isinstance(structure["value"], InputDefinition):
+                    input_definition = structure["value"]
+                else:
+                    input_definition = InputDefinition.from_dict(
+                        parent,
+                        structure,
+                        part_identifier=part_identifier,
+                        prefix=self.variable_prefix,
+                    )
+                    input_definitions.append(input_definition)
                 return input_definition
 
             part_identifier = structure.get(NAME_TAG, part_identifier)
@@ -242,9 +250,12 @@ class AbstractStructureBuilder(ABC):
         key, value = parent, structure
         if key == POLAR_TAG:
             return None
-        input_definition = InputDefinition(
-            key, value, part_identifier=part_identifier, prefix=self.variable_prefix
-        )
+        if isinstance(value, InputDefinition):
+            input_definition = value
+        else:
+            input_definition = InputDefinition(
+                key, value, part_identifier=part_identifier, prefix=self.variable_prefix
+            )
         if matching_class and isinstance(value, str):
             input_definition.shape_by_conn = self._is_shape_by_conn(key, matching_class)
         input_definitions.append(input_definition)
@@ -366,7 +377,7 @@ class SegmentStructureBuilder(AbstractStructureBuilder, structure_type=SEGMENT_T
     """
 
     def _build(self, definition: dict) -> dict:
-        segment_structure = deepcopy(definition)
+        segment_structure = self._update_additional_parameters(definition)
         del segment_structure[SEGMENT_TAG]
         segment_structure[SEGMENT_TYPE_TAG] = definition[SEGMENT_TAG]
 
@@ -382,6 +393,7 @@ class PhaseStructureBuilder(AbstractStructureBuilder, structure_type=PHASE_TAG):
 
     def _build(self, definition: dict) -> dict:
         phase_definition = definition[PHASE_DEFINITIONS_TAG][self.name]
+        phase_definition = self._update_additional_parameters(phase_definition)
         phase_structure = deepcopy(phase_definition)
 
         for i, part in enumerate(phase_definition[PARTS_TAG]):
@@ -418,6 +430,7 @@ class RouteStructureBuilder(AbstractStructureBuilder, structure_type=ROUTE_TAG):
 
     def _build(self, definition: dict) -> dict:
         route_definition = definition[ROUTE_DEFINITIONS_TAG][self.name]
+        route_definition = self._update_additional_parameters(route_definition)
         route_structure = deepcopy(route_definition)
 
         route_structure[CLIMB_PARTS_TAG] = self._get_route_climb_or_descent_structure(

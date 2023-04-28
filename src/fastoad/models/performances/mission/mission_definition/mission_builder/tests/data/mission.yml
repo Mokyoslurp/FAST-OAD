@@ -190,6 +190,7 @@ routes:
 
 missions:
   sizing:
+    isa_offset: 0.0
     parts:
       - route: main
       - route: diversion
