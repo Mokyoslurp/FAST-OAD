@@ -107,7 +107,27 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
             atm.mach = start.mach
             start.true_airspeed = atm.true_airspeed
 
-        return super().compute_from_start_to_target(start, target)
+        use_optimal_flight_level = target.CL == self.OPTIMAL_FLIGHT_LEVEL
+        if use_optimal_flight_level:
+            target.CL == self.OPTIMAL_ALTITUDE
+        flight_points = super().compute_from_start_to_target(start, target)
+
+        if use_optimal_flight_level:
+            optimal_altitude = flight_points.iloc[-1].altitude
+            target_flight_level = get_closest_flight_level(optimal_altitude, up_direction=False)
+            while flight_points.iloc[-1].altitude > target_flight_level:
+                flight_points.drop(flight_points.tail(1).index, inplace=True)
+            last_flight_point = (
+                super()
+                .compute_from_start_to_target(
+                    FlightPoint.create(flight_points.iloc[-1]),
+                    FlightPoint(altitude=target_flight_level),
+                )
+                .iloc[-1]
+            )
+            flight_points.append(last_flight_point)
+
+        return flight_points
 
     def get_distance_to_target(
         self, flight_points: List[FlightPoint], target: FlightPoint
