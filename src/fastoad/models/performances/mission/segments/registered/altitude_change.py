@@ -109,14 +109,15 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
 
         use_optimal_flight_level = target.CL == self.OPTIMAL_FLIGHT_LEVEL
         if use_optimal_flight_level:
-            target.CL == self.OPTIMAL_ALTITUDE
+            target.CL = self.OPTIMAL_ALTITUDE
         flight_points = super().compute_from_start_to_target(start, target)
 
         if use_optimal_flight_level:
             optimal_altitude = flight_points.iloc[-1].altitude
             target_flight_level = get_closest_flight_level(optimal_altitude, up_direction=False)
             while flight_points.iloc[-1].altitude > target_flight_level:
-                flight_points.drop(flight_points.tail(1).index, inplace=True)
+                last_index = flight_points.tail(1).index
+                flight_points.drop(last_index, inplace=True)
             last_flight_point = (
                 super()
                 .compute_from_start_to_target(
@@ -125,7 +126,8 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
                 )
                 .iloc[-1]
             )
-            flight_points.append(last_flight_point)
+            flight_points = flight_points.append(last_flight_point)
+            target.CL = self.OPTIMAL_FLIGHT_LEVEL
 
         return flight_points
 
@@ -166,8 +168,6 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
             )
             if target.CL == self.OPTIMAL_ALTITUDE:
                 target.altitude = optimal_altitude
-            else:  # target.CL == self.OPTIMAL_FLIGHT_LEVEL:
-                target.altitude = get_closest_flight_level(optimal_altitude, up_direction=False)
 
         if target.altitude is not None:
             return target.altitude - current.altitude
