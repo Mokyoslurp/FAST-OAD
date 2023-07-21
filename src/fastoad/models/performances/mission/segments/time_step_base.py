@@ -265,8 +265,10 @@ class AbstractTimeStepFlightSegment(
         """
 
         if not self.mach_bounds[0] <= flight_point.mach <= self.mach_bounds[1]:
+            flight_point.scalarize()  # by safety. The formatting would not accept a numpy array
             return f"true_airspeed value {flight_point.true_airspeed:.1f}m/s is out of bound."
         if not self.altitude_bounds[0] <= flight_point.altitude <= self.altitude_bounds[1]:
+            flight_point.scalarize()  # by safety. The formatting would not accept a numpy array
             return f"Altitude value {flight_point.altitude:.0f}m is out of bound."
         if flight_point.mass <= 0.0:
             return "Negative mass value."
