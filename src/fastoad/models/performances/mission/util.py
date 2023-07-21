@@ -2,7 +2,7 @@
 Utilities for mission computation.
 """
 #  This file is part of FAST-OAD : A framework for rapid Overall Aircraft Design
-#  Copyright (C) 2020  ONERA & ISAE-SUPAERO
+#  Copyright (C) 2023 ONERA & ISAE-SUPAERO
 #  FAST is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,7 @@ from scipy.constants import foot
 FLIGHT_LEVEL = 100 * foot
 
 
-def get_closest_flight_level(altitude, base_level=0, level_step=10, up_direction=True):
+def get_closest_flight_level(altitude, base_level=0, level_step=10, up_direction=True, tol=1.0e-3):
     """
     Computes the altitude (in meters) of a flight level close to provided altitude.
 
@@ -47,12 +47,17 @@ def get_closest_flight_level(altitude, base_level=0, level_step=10, up_direction
     :param up_direction: True if next flight level is upper. False if lower
     :return: the altitude in meters of the asked flight level.
     """
+
+    altitude_step = level_step * FLIGHT_LEVEL
+    base_altitude = base_level * FLIGHT_LEVEL
+
+    input_flight_level = (altitude - base_altitude) / altitude_step
+
+    if abs(input_flight_level - np.round(input_flight_level)) <= tol:
+        return altitude
+
     if up_direction:
         func = np.ceil
     else:
         func = np.floor
-
-    base_altitude = FLIGHT_LEVEL * base_level
-    return base_altitude + FLIGHT_LEVEL * level_step * func(
-        (altitude - base_altitude) / FLIGHT_LEVEL / level_step
-    )
+    return func(input_flight_level) * altitude_step + base_altitude

@@ -161,11 +161,13 @@ def test_climb_optimal_flight_level_at_fixed_TAS(polar):
         last_point = flight_points.iloc[-1]
         # Note: reference values are obtained by running the process with 0.01s as time step
         assert_allclose(flight_points.true_airspeed, 250.0)
-        assert_allclose(last_point.altitude / foot, 32000.0, atol=0.1)
-        assert_allclose(last_point.time, 78.7, rtol=1e-2)
-        assert_allclose(last_point.mach, 0.8318, rtol=1e-4)
-        assert_allclose(last_point.mass, 69843.0, rtol=1e-4)
-        assert_allclose(last_point.ground_distance, 19091.0, rtol=1e-3)
+        # In test_climb_optimal_altitude_at_fixed_TAS() above, optimal altitude is 10085m
+        # i.e. 33087 ft. We expect the flight level below, 33000ft.
+        assert_allclose(last_point.altitude / foot, 33000.0, atol=0.1)
+        assert_allclose(last_point.time, 83.7, rtol=1e-2)
+        assert_allclose(last_point.mach, 0.8355, rtol=1e-4)
+        assert_allclose(last_point.mass, 69833.0, rtol=1e-4)
+        assert_allclose(last_point.ground_distance, 20307.0, rtol=1e-3)
 
     run()
 
