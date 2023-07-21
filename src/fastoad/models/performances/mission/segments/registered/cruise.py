@@ -144,7 +144,9 @@ class ClimbAndCruiseSegment(CruiseSegment):
 
             while go_to_next_level:
                 old_mass_loss = mass_loss
-                cruise_altitude = get_closest_flight_level(cruise_altitude + 1.0e-3)
+                cruise_altitude = get_closest_flight_level(
+                    cruise_altitude + 1.0e-1, up_direction=True, tol=1.0e-3
+                )
                 if cruise_altitude > self.maximum_flight_level * 100.0 * foot:
                     break
 

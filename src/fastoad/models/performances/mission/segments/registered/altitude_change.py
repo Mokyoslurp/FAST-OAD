@@ -118,10 +118,11 @@ class AltitudeChangeSegment(AbstractManualThrustSegment):
             while flight_points.iloc[-1].altitude > target_flight_level:
                 last_index = flight_points.tail(1).index
                 flight_points.drop(last_index, inplace=True)
+            new_start = flight_points.iloc[-1]
             last_flight_point = (
                 super()
                 .compute_from_start_to_target(
-                    FlightPoint.create(flight_points.iloc[-1]),
+                    FlightPoint.create(new_start),
                     FlightPoint(altitude=target_flight_level),
                 )
                 .iloc[-1]
