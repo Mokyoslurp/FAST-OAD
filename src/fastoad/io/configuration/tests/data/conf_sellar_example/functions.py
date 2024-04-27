@@ -27,6 +27,8 @@ SERVICE_FUNCTION_G2 = "service.function.g2"
 @RegisterOpenMDAOSystem("configuration_test.sellar.functions")
 class Functions(om.Group):
     def initialize(self):
+        self.options.declare("dummy_generic_option", types=str, default="")
+
         # Defined the default "f" function. This choice can be overridden in
         # configuration file
         RegisterSubmodel.active_models[SERVICE_FUNCTION_F] = "function.f.default"

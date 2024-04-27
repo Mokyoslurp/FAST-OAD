@@ -23,8 +23,10 @@ model:
       id: configuration_test.sellar.disc1
     disc2:
       id: configuration_test.sellar.disc2
-  functions:
-    id: configuration_test.sellar.functions
+  group:
+    functions:
+      id: configuration_test.sellar.functions
+      dummy_generic_option : "translator.txt" # existing file to test make_local()
 
 model_options:
   "*":

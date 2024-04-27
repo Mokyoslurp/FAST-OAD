@@ -26,8 +26,9 @@ driver = "om.ScipyOptimizeDriver(optimizer='SLSQP')"
             id = "configuration_test.sellar.disc1"
         [model.cycle.disc2]
             id = "configuration_test.sellar.disc2"
-    [model.functions]
+    [model.group.functions]
         id = "configuration_test.sellar.functions"
+        dummy_generic_option = "translator.txt" # existing file to test make_local()
 
 [model_options."*"]
   dummy_f_option = 10
