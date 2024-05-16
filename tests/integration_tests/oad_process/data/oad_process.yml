@@ -23,7 +23,7 @@ model:
         id: fastoad.performances.mission
         propulsion_id: fastoad.wrapper.propulsion.rubber_engine
         out_file: ../results/flight_points.csv
-        mission_file_path: ::sizing_breguet
+        mission_file_path: ./mission_definition/sizing_breguet.yml
         adjust_fuel: true
         add_solver: false
         is_sizing: true
