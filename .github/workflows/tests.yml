@@ -29,7 +29,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - uses: mpi4py/setup-mpi@v1
+        if: ${{ runner.os == 'Linux' }}
+        with:
+          mpi: 'openmpi'
+      - uses: mpi4py/setup-mpi@v1
+        if: ${{ runner.os != 'Linux' }}
 
       - name: Install poetry
         run: pipx install poetry==${{ vars.POETRY_VERSION }}
