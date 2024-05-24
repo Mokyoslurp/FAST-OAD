@@ -129,6 +129,17 @@ class FASTOADProblemConfigurator:
 
         model_options = self._data.get(KEY_MODEL_OPTIONS)
         if model_options:
+            conf_folder_path = self._conf_file_path.parent
+            for model_pattern, options in model_options.items():
+                for option_name, option_value in options.items():
+                    if (
+                        isinstance(option_value, str)
+                        and self._option_is_path(option_name)
+                        and not Path(option_value).is_absolute()
+                    ):
+                        options[option_name] = conf_folder_path.joinpath(option_value).as_posix()
+
+        if model_options:
             problem.model_options = model_options
 
         if self.get_optimization_definition():
@@ -285,6 +296,10 @@ class FASTOADProblemConfigurator:
         self._make_options_local(self._data[KEY_MODEL], new_folder_path)
         self.save(new_folder_path.joinpath(self._conf_file_path.name))
 
+    @staticmethod
+    def _option_is_path(option_name: str) -> bool:
+        return option_name.endswith(("file", "path", "dir", "directory", "folder"))
+
     def _make_options_local(self, structure: dict, new_root_path, local_path=Path(".")):
         for key, value in structure.items():
             if isinstance(value, dict) and key != KEY_CONNECTION_ID:
@@ -301,7 +316,7 @@ class FASTOADProblemConfigurator:
                 if (
                     original_file_path.exists()
                     or len(option_value_as_path.parts) > 1
-                    or key.endswith(("file", "path", "dir", "directory", "folder"))
+                    or self._option_is_path(key)
                 ):
                     structure[key] = self._make_path_local(
                         original_file_path, new_root_path, local_path / option_value_as_path.parent
@@ -404,12 +419,9 @@ class FASTOADProblemConfigurator:
                     # Process option values that are relative paths
                     conf_folder_path = self._conf_file_path.parent
                     for name, option_value in options.items():
-                        option_is_path = name.endswith(
-                            ("file", "path", "dir", "directory", "folder")
-                        )
                         if (
                             isinstance(option_value, str)
-                            and option_is_path
+                            and self._option_is_path(name)
                             and not Path(option_value).is_absolute()
                         ):
                             options[name] = conf_folder_path.joinpath(option_value).as_posix()
